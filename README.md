@@ -1,4 +1,3 @@
-Here's a comprehensive README.md for the Subdomain Takeover Detection Template:
 
 ```markdown
 # Subdomain Takeover Detection Nuclei Template
