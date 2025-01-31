@@ -113,7 +113,6 @@ A: Always required before reporting vulnerabilities
 
 - [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz)
 - [Nuclei Documentation](https://nuclei.projectdiscovery.io/)
-- [Subdomain Takeover Guide](https://developer.harness.io/docs/security-testing-orchestration/sto-tutorials/security-scan-targets/subdomain-takeover)
 
 ## 📜 License
 
