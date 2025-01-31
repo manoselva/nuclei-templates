@@ -1,5 +1,3 @@
-
-```markdown```
 # Subdomain Takeover Detection Nuclei Template
 
 ![Nuclei](https://img.shields.io/badge/Nuclei-v3.0+-blue)
