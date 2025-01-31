@@ -21,7 +21,6 @@ http:
     max-redirects: 5
     matchers-condition: and
     matchers:
-      # Phase 1: False positive exclusion
       - type: regex
         negative: true
         part: body
@@ -29,90 +28,75 @@ http:
           - "(?i)(page not found|404 error|not found|access denied|cloudflare)"
           - "(?i)(this site can't be reached|connection refused|under construction)"
 
-      # Phase 2: Service-specific detection (OR within AND context)
       - type: word
         words:
-          # AWS Services
           - "<Code>NoSuchBucket</Code>"
           - "The specified bucket does not exist"
           - "AWS Simple Storage Service"
-          # GitHub
           - "There isn't a GitHub Pages site here."
           - "For root URLs (like http://example.com/)"
-          # Heroku
           - "herokucdn.com/error-pages/no-such-app.html"
           - "There's nothing here, yet."
-          # Fastly
           - "Fastly error: unknown domain"
           - "Please check that this domain has been added to a service"
-          # Firebase
           - "Firebase Hosting Setup"
           - "The requested URL was not found on this server"
-          # CloudFront
           - "ERROR: The request could not be satisfied"
           - "The specified distribution does not exist"
-          # Azure
           - "AzureStaticWebAppsRedirect"
           - "ErrorCode: BlobNotFound"
           - "Static site not found"
-          # Cloudflare
           - "CLOUDFLARE_ERROR_1000_HOST_NOT_CONFIGURED"
-          # Google Cloud
           - "The specified bucket is not valid"
-          # Shopify
           - "Sorry, this shop is currently unavailable."
           - "If you're the store owner"
-          # Ghost
           - "The thing you were looking for is no longer here"
-          # Pantheon
           - "404 error unknown site!"
           - "The gods are wise"
-          # Additional Services from detect-all-takeovers
-          - "Ошибка 402. Сервис Айри.рф не оплачен"  # Airee
-          - "If this is your website and you've just created it, try refreshing in a minute"  # Anima
-          - "The page you have requested does not exist"  # Bitbucket
-          - "Repository not found"  # Bitbucket
-          - '<p class="bc-gallery-error-code">Error Code: 404</p>'  # Brightcove
-          - "<strong>Trying to access your account?</strong>"  # CampaignMonitor
-          - "Company Not Found"  # Canny
-          - "There is no such company. Did you enter the right URL?"  # Canny
-          - "If you're moving your domain away from Cargo you must make this configuration"  # Cargo
-          - "<div class='notfound'>"  # CargoCollective
-          - "404: This page could not be found."  # Gemfury
-          - "With GetResponse Landing Pages, lead generation has never been easier"  # GetResponse
-          - "404 Blog is not found"  # HatenaBlog
-          - "We could not find what you're looking for."  # HelpJuice
-          - "Alias not configured!"  # HelpRace
-          - "No settings were found for this company:"  # HelpScout
-          - "This page is reserved for artistic dogs."  # Intercom
-          - "is not a registered InCloud YouTrack."  # JetBrains
-          - "It looks like you're lost"  # Landingi
-          - "It looks like you may have taken a wrong turn somewhere."  # Launchrock
-          - "Unrecognized domain <strong>"  # Mashery
-          - "ngrok.io not found"  # Ngrok
-          - "Public Report Not Activated"  # Pingdom
-          - "Project doesnt exist... yet!"  # Readme
-          - "Job Board Is Unavailable"  # SmartJob
-          - "Domain is not configured"  # Smartling
-          - '{"text":"Page Not Found"'  # SmugMug
-          - "But if you're looking to build your own website"  # Strikingly
-          - "project not found"  # Surge
-          - "data-html-name"  # SurveyGizmo
-          - "<h1>Error 404: Page Not Found</h1>"  # Tave
-          - "Oops - We didn't find your site."  # Teamwork
-          - "You may have mistyped the address or the page may have moved."  # Thinkific
-          - "Building a brand of your own?"  # Tictail
-          - "Domain has been assigned"  # Tilda
-          - "Whatever you were looking for doesn't currently exist at this address."  # Tumblr
-          - "Non-hub domain, The URL you've accessed does not provide a hub."  # Uberflip
-          - "<p class='description'>The page you are looking for doesn't exist or has been moved.</p>"  # Webflow
-          - "Do you want to register"  # WordPress
-          - "unknown to Read the Docs"  # ReadTheDocs
+          - "Ошибка 402. Сервис Айри.рф не оплачен"
+          - "If this is your website and you've just created it, try refreshing in a minute"
+          - "The page you have requested does not exist"
+          - "Repository not found"
+          - '<p class="bc-gallery-error-code">Error Code: 404</p>'
+          - "<strong>Trying to access your account?</strong>"
+          - "Company Not Found"
+          - "There is no such company. Did you enter the right URL?"
+          - "If you're moving your domain away from Cargo you must make this configuration"
+          - "<div class='notfound'>"
+          - "404: This page could not be found."
+          - "With GetResponse Landing Pages, lead generation has never been easier"
+          - "404 Blog is not found"
+          - "We could not find what you're looking for."
+          - "Alias not configured!"
+          - "No settings were found for this company:"
+          - "This page is reserved for artistic dogs."
+          - "is not a registered InCloud YouTrack."
+          - "It looks like you're lost"
+          - "It looks like you may have taken a wrong turn somewhere."
+          - "Unrecognized domain <strong>"
+          - "ngrok.io not found"
+          - "Public Report Not Activated"
+          - "Project doesnt exist... yet!"
+          - "Job Board Is Unavailable"
+          - "Domain is not configured"
+          - '{"text":"Page Not Found"'
+          - "But if you're looking to build your own website"
+          - "project not found"
+          - "data-html-name"
+          - "<h1>Error 404: Page Not Found</h1>"
+          - "Oops - We didn't find your site."
+          - "You may have mistyped the address or the page may have moved."
+          - "Building a brand of your own?"
+          - "Domain has been assigned"
+          - "Whatever you were looking for doesn't currently exist at this address."
+          - "Non-hub domain, The URL you've accessed does not provide a hub."
+          - "<p class='description'>The page you are looking for doesn't exist or has been moved.</p>"
+          - "Do you want to register"
+          - "unknown to Read the Docs"
         part: body
         status: [404, 403, 400, 502, 503]
         condition: or
 
-      # Phase 3: Header verification
       - type: word
         words:
           - "Server: GitHub.com"
@@ -123,11 +107,10 @@ http:
         part: header
         condition: or
 
-      # Phase 4: Response characteristics
       - type: dsl
         dsl:
-          - 'duration < 1500'  # Filter slow generic pages
-          - 'body_length < 2500'  # Target service-specific error sizes
+          - 'duration < 1500'
+          - 'body_length < 2500'
 
 extractors:
   - type: regex
@@ -147,8 +130,3 @@ extractors:
 fingerprint:
   - service: "{{service}}"
     cname: "{{cname-clue}}"
-
-# Optional debugging (remove in production)
-# debug:
-#   - name: "Response Analysis"
-#     value: "Size: {{body_length}} bytes | Time: {{duration}}ms"
