@@ -1,0 +1,154 @@
+id: subdomain-takeover-pro-plus
+
+info:
+  name: Ultimate Subdomain Takeover Detection
+  author: your-name
+  severity: high
+  description: |
+    Comprehensive subdomain takeover detection with 50+ service patterns,
+    multi-layer verification, and advanced false positive reduction.
+  reference:
+    - https://github.com/EdOverflow/can-i-take-over-xyz
+  tags: takeover, subdomain, cloud, advanced
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}"
+      - "http://{{Host}}/"
+      - "https://{{Host}}/"
+    redirects: true
+    max-redirects: 5
+    matchers-condition: and
+    matchers:
+      # Phase 1: False positive exclusion
+      - type: regex
+        negative: true
+        part: body
+        regex:
+          - "(?i)(page not found|404 error|not found|access denied|cloudflare)"
+          - "(?i)(this site can't be reached|connection refused|under construction)"
+
+      # Phase 2: Service-specific detection (OR within AND context)
+      - type: word
+        words:
+          # AWS Services
+          - "<Code>NoSuchBucket</Code>"
+          - "The specified bucket does not exist"
+          - "AWS Simple Storage Service"
+          # GitHub
+          - "There isn't a GitHub Pages site here."
+          - "For root URLs (like http://example.com/)"
+          # Heroku
+          - "herokucdn.com/error-pages/no-such-app.html"
+          - "There's nothing here, yet."
+          # Fastly
+          - "Fastly error: unknown domain"
+          - "Please check that this domain has been added to a service"
+          # Firebase
+          - "Firebase Hosting Setup"
+          - "The requested URL was not found on this server"
+          # CloudFront
+          - "ERROR: The request could not be satisfied"
+          - "The specified distribution does not exist"
+          # Azure
+          - "AzureStaticWebAppsRedirect"
+          - "ErrorCode: BlobNotFound"
+          - "Static site not found"
+          # Cloudflare
+          - "CLOUDFLARE_ERROR_1000_HOST_NOT_CONFIGURED"
+          # Google Cloud
+          - "The specified bucket is not valid"
+          # Shopify
+          - "Sorry, this shop is currently unavailable."
+          - "If you're the store owner"
+          # Ghost
+          - "The thing you were looking for is no longer here"
+          # Pantheon
+          - "404 error unknown site!"
+          - "The gods are wise"
+          # Additional Services from detect-all-takeovers
+          - "Ошибка 402. Сервис Айри.рф не оплачен"  # Airee
+          - "If this is your website and you've just created it, try refreshing in a minute"  # Anima
+          - "The page you have requested does not exist"  # Bitbucket
+          - "Repository not found"  # Bitbucket
+          - '<p class="bc-gallery-error-code">Error Code: 404</p>'  # Brightcove
+          - "<strong>Trying to access your account?</strong>"  # CampaignMonitor
+          - "Company Not Found"  # Canny
+          - "There is no such company. Did you enter the right URL?"  # Canny
+          - "If you're moving your domain away from Cargo you must make this configuration"  # Cargo
+          - "<div class='notfound'>"  # CargoCollective
+          - "404: This page could not be found."  # Gemfury
+          - "With GetResponse Landing Pages, lead generation has never been easier"  # GetResponse
+          - "404 Blog is not found"  # HatenaBlog
+          - "We could not find what you're looking for."  # HelpJuice
+          - "Alias not configured!"  # HelpRace
+          - "No settings were found for this company:"  # HelpScout
+          - "This page is reserved for artistic dogs."  # Intercom
+          - "is not a registered InCloud YouTrack."  # JetBrains
+          - "It looks like you're lost"  # Landingi
+          - "It looks like you may have taken a wrong turn somewhere."  # Launchrock
+          - "Unrecognized domain <strong>"  # Mashery
+          - "ngrok.io not found"  # Ngrok
+          - "Public Report Not Activated"  # Pingdom
+          - "Project doesnt exist... yet!"  # Readme
+          - "Job Board Is Unavailable"  # SmartJob
+          - "Domain is not configured"  # Smartling
+          - '{"text":"Page Not Found"'  # SmugMug
+          - "But if you're looking to build your own website"  # Strikingly
+          - "project not found"  # Surge
+          - "data-html-name"  # SurveyGizmo
+          - "<h1>Error 404: Page Not Found</h1>"  # Tave
+          - "Oops - We didn't find your site."  # Teamwork
+          - "You may have mistyped the address or the page may have moved."  # Thinkific
+          - "Building a brand of your own?"  # Tictail
+          - "Domain has been assigned"  # Tilda
+          - "Whatever you were looking for doesn't currently exist at this address."  # Tumblr
+          - "Non-hub domain, The URL you've accessed does not provide a hub."  # Uberflip
+          - "<p class='description'>The page you are looking for doesn't exist or has been moved.</p>"  # Webflow
+          - "Do you want to register"  # WordPress
+          - "unknown to Read the Docs"  # ReadTheDocs
+        part: body
+        status: [404, 403, 400, 502, 503]
+        condition: or
+
+      # Phase 3: Header verification
+      - type: word
+        words:
+          - "Server: GitHub.com"
+          - "X-GitHub-Request-Id"
+          - "AWS Simple Storage Service"
+          - "Microsoft-Azure-Storage"
+          - "FirebaseHosting"
+        part: header
+        condition: or
+
+      # Phase 4: Response characteristics
+      - type: dsl
+        dsl:
+          - 'duration < 1500'  # Filter slow generic pages
+          - 'body_length < 2500'  # Target service-specific error sizes
+
+extractors:
+  - type: regex
+    name: service
+    part: body
+    group: 1
+    regex:
+      - '(?i)(S3|GitHub|Heroku|Azure|Firebase|CloudFront|Shopify|Google Cloud|Fastly|Ghost|Pantheon|Airee|Anima|Bitbucket|Brightcove|CampaignMonitor|Canny|Cargo|Gemfury|GetResponse|HatenaBlog|HelpJuice|HelpRace|HelpScout|Intercom|JetBrains|Landingi|Launchrock|Mashery|Ngrok|Pingdom|Readme|SmartJob|Smartling|SmugMug|Strikingly|Surge|SurveyGizmo|Tave|Teamwork|Thinkific|Tictail|Tilda|Tumblr|Uberflip|Webflow|WordPress|ReadTheDocs)'
+      - 'Server:\s*([^\r\n]+)'
+
+  - type: regex
+    name: cname-clue
+    part: body
+    regex:
+      - '([a-z0-9.-]+\.(s3|heroku|azure|github|firebase|cloudfront|shopify|ngrok|tilda|webflow)\.(com|net|io|org))'
+
+fingerprint:
+  - service: "{{service}}"
+    cname: "{{cname-clue}}"
+
+# Optional debugging (remove in production)
+# debug:
+#   - name: "Response Analysis"
+#     value: "Size: {{body_length}} bytes | Time: {{duration}}ms"
